@@ -1,0 +1,67 @@
+clc;
+clear;
+close all;
+
+% WR-90 Rectangular Waveguide Parameters
+c = 3e8;                 % Speed of light (m/s)
+f = 10e9;                % Operating frequency (Hz)
+a = 22.86e-3;            % Waveguide width (m)
+b = 10.16e-3;            % Waveguide height (m)
+L = 100e-3;              % Waveguide length (m)
+
+% TE10 mode
+m = 1;
+n = 0;
+
+% Theoretical cutoff frequency
+fc = (c/2)*sqrt((m/a)^2 + (n/b)^2);
+
+% Propagation constant
+beta = (2*pi*f/c)*sqrt(1 - (fc/f)^2);
+
+% Guided wavelength
+lambda_g = 2*pi/beta;
+
+% Display results
+fprintf('WR-90 TE10 MODE RESULTS\n');
+fprintf('------------------------\n');
+fprintf('Operating Frequency = %.2f GHz\n', f/1e9);
+fprintf('Theoretical Cutoff Frequency = %.4f GHz\n', fc/1e9);
+fprintf('Propagation Constant = %.4f rad/m\n', beta);
+fprintf('Guided Wavelength = %.4f mm\n', lambda_g*1e3);
+
+% TE10 Electric field distribution
+x = linspace(0,a,100);
+z = linspace(0,L,200);
+[X,Z] = meshgrid(x,z);
+
+Ey = sin(pi*X/a);
+
+% Normalize field
+Ey = Ey/max(abs(Ey(:)));
+
+figure;
+surf(X*1000,Z*1000,Ey);
+shading interp;
+xlabel('Width x (mm)');
+ylabel('Propagation z (mm)');
+zlabel('Normalized E_y');
+title('TE_{10} Electric Field Distribution');
+colorbar;
+view(45,30);
+
+% Magnetic field distribution
+Hz = cos(pi*X/a);
+
+% Normalize field
+Hz = Hz/max(abs(Hz(:)));
+
+figure;
+surf(X*1000,Z*1000,Hz);
+shading interp;
+xlabel('Width x (mm)');
+ylabel('Propagation z (mm)');
+zlabel('Normalized H_z');
+title('TE_{10} Magnetic Field Distribution');
+colorbar;
+view(45,30);
