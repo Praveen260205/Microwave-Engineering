@@ -1,0 +1,128 @@
+clc;
+clear;
+close all;
+
+%% Constants
+c = 3e8;                 % Speed of light (m/s)
+f = 10e9;                % Operating frequency (Hz)
+
+%% WR-90 Waveguide dimensions
+a = 22.86e-3;            % Width (m)
+b = 10.16e-3;            % Height (m)
+L = 100e-3;              % Length (m)
+
+%% Mode indices
+m1 = 1; n1 = 0;          % TE10
+m2 = 1; n2 = 1;          % TM11
+
+%% Cutoff frequencies
+fc_TE10 = (c/2)*sqrt((m1/a)^2 + (n1/b)^2);
+fc_TM11 = (c/2)*sqrt((m2/a)^2 + (n2/b)^2);
+
+%% Display cutoff frequencies
+fprintf('TE10 cutoff frequency = %.3f GHz\n', fc_TE10/1e9);
+fprintf('TM11 cutoff frequency = %.3f GHz\n', fc_TM11/1e9);
+
+%% Free-space wavenumber
+k0 = 2*pi*f/c;
+
+%% Propagation constants
+if f > fc_TE10
+    beta_TE10 = k0*sqrt(1-(fc_TE10/f)^2);
+else
+    beta_TE10 = 1i*k0*sqrt((fc_TE10/f)^2-1);
+end
+
+if f > fc_TM11
+    beta_TM11 = k0*sqrt(1-(fc_TM11/f)^2);
+else
+    alpha_TM11 = k0*sqrt((fc_TM11/f)^2-1);
+    beta_TM11 = 1i*alpha_TM11;
+end
+
+%% Display propagation constants
+fprintf('\nTE10 propagation constant = %.3f rad/m\n', ...
+    real(beta_TE10));
+
+fprintf('TM11 propagation constant = j%.3f rad/m\n', ...
+    imag(beta_TM11));
+
+%% Spatial grid
+Nx = 100;
+Ny = 60;
+
+x = linspace(0,a,Nx);
+y = linspace(0,b,Ny);
+
+[X,Y] = meshgrid(x,y);
+
+%% TE10 Electric-field distribution
+% Dominant transverse electric field
+
+E_TE10 = sin(pi*X/a);
+
+%% TM11 Electric-field distribution
+% Longitudinal electric field Ez
+
+E_TM11 = sin(pi*X/a).*sin(pi*Y/b);
+
+%% Normalize fields
+E_TE10 = E_TE10/max(abs(E_TE10(:)));
+E_TM11 = E_TM11/max(abs(E_TM11(:)));
+
+%% Plot TE10 E-field
+figure;
+
+imagesc(x*1000,y*1000,E_TE10);
+axis xy;
+xlabel('x (mm)');
+ylabel('y (mm)');
+title('TE_{10} Electric Field Distribution');
+colorbar;
+
+%% Plot TM11 E-field
+figure;
+
+imagesc(x*1000,y*1000,E_TM11);
+axis xy;
+xlabel('x (mm)');
+ylabel('y (mm)');
+title('TM_{11} Electric Field Distribution');
+colorbar;
+
+%% 3-D TE10 field
+figure;
+
+surf(X*1000,Y*1000,E_TE10);
+xlabel('x (mm)');
+ylabel('y (mm)');
+zlabel('Normalized E-field');
+title('TE_{10} Electric Field');
+shading interp;
+colorbar;
+
+%% 3-D TM11 field
+figure;
+
+surf(X*1000,Y*1000,E_TM11);
+xlabel('x (mm)');
+ylabel('y (mm)');
+zlabel('Normalized E-field');
+title('TM_{11} Electric Field');
+shading interp;
+colorbar;
+
+%% Comparison
+fprintf('\n--- MODE COMPARISON ---\n');
+
+if f > fc_TE10
+    fprintf('TE10: PROPAGATING at 10 GHz\n');
+else
+    fprintf('TE10: EVANESCENT at 10 GHz\n');
+end
+
+if f > fc_TM11
+    fprintf('TM11: PROPAGATING at 10 GHz\n');
+else
+    fprintf('TM11: EVANESCENT at 10 GHz\n');
+end
