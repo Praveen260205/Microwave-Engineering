@@ -1,0 +1,164 @@
+clc;
+clear;
+close all;
+
+%% TE10 Mode Simulation - WR-90 Rectangular Waveguide
+
+% Constants
+c = 3e8;                 % Speed of light (m/s)
+
+% Input parameters
+f = 10e9;                % Operating frequency (Hz)
+a = 22.86e-3;            % Waveguide width (m)
+b = 10.16e-3;            % Waveguide height (m)
+L = 100e-3;              % Waveguide length (m)
+
+%% 1. TE10 Cutoff Frequency
+
+m = 1;
+n = 0;
+
+fc = (c/2) * sqrt((m/a)^2 + (n/b)^2);
+
+fprintf('TE10 Cutoff Frequency = %.4f GHz\n', fc/1e9);
+
+%% 2. Propagation Constant
+
+if f > fc
+
+    beta = (2*pi*f/c) * sqrt(1 - (fc/f)^2);
+
+    fprintf('Propagation Constant beta = %.4f rad/m\n', beta);
+
+else
+
+    beta = 0;
+    fprintf('Frequency is below cutoff. No propagation.\n');
+
+end
+
+%% 3. Guided Wavelength
+
+if f > fc
+    lambda_g = 2*pi/beta;
+    fprintf('Guided Wavelength = %.4f mm\n', lambda_g*1000);
+end
+
+%% 4. Phase Constant in Free Space
+
+k0 = 2*pi*f/c;
+
+fprintf('Free Space Wavenumber k0 = %.4f rad/m\n', k0);
+
+%% 5. Simulated Cutoff Frequency
+% Enter the cutoff frequency obtained from HFSS
+
+fc_sim = 6.56e9;     % Example HFSS simulated value
+
+percentage_deviation = ...
+    abs((fc_sim - fc)/fc)*100;
+
+fprintf('Simulated Cutoff Frequency = %.4f GHz\n', fc_sim/1e9);
+fprintf('Percentage Deviation = %.4f %%\n', ...
+    percentage_deviation);
+
+%% 6. TE10 Electric Field Distribution
+
+x = linspace(0,a,200);
+y = linspace(0,b,100);
+
+[X,Y] = meshgrid(x,y);
+
+% TE10 electric field
+Ey = sin(pi*X/a);
+
+% Normalize
+Ey = Ey ./ max(abs(Ey(:)));
+
+figure;
+
+surf(X*1000,Y*1000,Ey);
+
+shading interp;
+colorbar;
+
+xlabel('x (mm)');
+ylabel('y (mm)');
+zlabel('Normalized E_y');
+
+title('TE_{10} Mode - Electric Field Distribution');
+
+view(2);
+axis tight;
+
+%% 7. TE10 Magnetic Field Distribution
+
+% Longitudinal magnetic field component
+Hz = cos(pi*X/a);
+
+% Normalize
+Hz = Hz ./ max(abs(Hz(:)));
+
+figure;
+
+surf(X*1000,Y*1000,Hz);
+
+shading interp;
+colorbar;
+
+xlabel('x (mm)');
+ylabel('y (mm)');
+zlabel('Normalized H_z');
+
+title('TE_{10} Mode - Magnetic Field Distribution');
+
+view(2);
+axis tight;
+
+%% 8. 3D Electric Field Distribution
+
+figure;
+
+surf(X*1000,Y*1000,Ey);
+
+shading interp;
+colorbar;
+
+xlabel('x (mm)');
+ylabel('y (mm)');
+zlabel('Normalized E_y');
+
+title('3D Electric Field Distribution - TE_{10}');
+
+%% 9. 3D Magnetic Field Distribution
+
+figure;
+
+surf(X*1000,Y*1000,Hz);
+
+shading interp;
+colorbar;
+
+xlabel('x (mm)');
+ylabel('y (mm)');
+zlabel('Normalized H_z');
+
+title('3D Magnetic Field Distribution - TE_{10}');
+
+%% 10. Display Final Results
+
+fprintf('\n----------------------------------------\n');
+fprintf('        TE10 SIMULATION RESULTS\n');
+fprintf('----------------------------------------\n');
+
+fprintf('Operating Frequency      = %.2f GHz\n',f/1e9);
+fprintf('Waveguide Width (a)      = %.2f mm\n',a*1000);
+fprintf('Waveguide Height (b)     = %.2f mm\n',b*1000);
+fprintf('Waveguide Length (L)     = %.2f mm\n',L*1000);
+fprintf('Cutoff Frequency         = %.4f GHz\n',fc/1e9);
+fprintf('Propagation Constant     = %.4f rad/m\n',beta);
+fprintf('Guided Wavelength        = %.4f mm\n',lambda_g*1000);
+fprintf('HFSS Cutoff Frequency    = %.4f GHz\n',fc_sim/1e9);
+fprintf('Percentage Deviation     = %.4f %%\n',percentage_deviation);
+
+fprintf('----------------------------------------\n');
